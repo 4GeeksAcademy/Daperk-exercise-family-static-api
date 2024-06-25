@@ -26,17 +26,39 @@ def sitemap():
     return generate_sitemap(app)
 
 @app.route('/members', methods=['GET'])
-def handle_hello():
-
-    # this is how you can use the Family datastructure by calling its methods
+def get_all_members():
     members = jackson_family.get_all_members()
-    response_body = {
-        "hello": "world",
-        "family": members
-    }
+    return jsonify(members), 200
 
+@app.route('/member/<int:member_id>', methods=['GET'])
+def get_member(member_id):
+    member = jackson_family.get_member(member_id)
+    if member:
+        return jsonify(member), 200
+    return jsonify({"message": "Member not found"}), 404
 
-    return jsonify(response_body), 200
+@app.route('/member', methods=['POST'])
+def add_member():
+    member_data = request.get_json()
+    if not member_data:
+        return jsonify({"message": "Invalid data"}), 400
+    new_member = jackson_family.add_member(member_data)
+    return jsonify(new_member), 200
+
+@app.route('/member/<int:member_id>', methods=['DELETE'])
+def delete_member(member_id):
+    result = jackson_family.delete_member(member_id)
+    return jsonify(result), 200
+
+@app.route('/member/<int:member_id>', methods=['PUT'])
+def update_member(member_id):
+    new_data = request.get_json()
+    if not new_data:
+        return jsonify({"message": "Invalid data"}), 400
+    updated_member = jackson_family.update_member(member_id, new_data)
+    if updated_member:
+        return jsonify(updated_member), 200
+    return jsonify({"message": "Member not found"}), 404
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
